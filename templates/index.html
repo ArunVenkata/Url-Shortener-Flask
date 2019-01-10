@@ -1,0 +1,92 @@
+{% include "header.html" %}
+
+<div class="container" style="width: 40%">
+    <div class="row">
+        <div style="text-align: center;" class="mx-auto">
+            <img src="/static/Images/rose.svg" style="width: 10em; height: 10em; border-width: 0; " alt="Logo Image"
+                 class="img-thumbnail">
+            <h1>Floral - Shorten Url</h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon3">Enter URL to Shorten : </span>
+                </div>
+                <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+            </div>
+        </div>
+    </div>
+    <div class="row" style="margin-bottom: 2%; text-align: center;">
+        <div class="col">
+            <button class="btn btn-primary" id="submit">Submit</button>
+        </div>
+    </div>
+    <div class="row hide" id="errdiv">
+        <div class="col">
+            <div class="alert alert-danger" id="err" role="alert">
+                Invalid/Empty URL! - Please check the URL!
+            </div>
+        </div>
+    </div>
+    <div class="row" id="resdiv">
+        <div class="col">
+            <div class="card" style="width: 18rem;">
+                <div class="card-body">
+                    <h5 class="card-title">Short Link</h5>
+                    <a href="#" class="card-link" id="card-linkid" target="_blank"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    function vibrate(dur, times, selector) {
+        for (let i = 0; i < times; i++)
+            $(selector).animate({
+                left: (i % 2 === 0 ? "-" : "+") + "=10"
+            }, dur);
+    }
+
+    $("#submit").on("click", function () {
+        let errdiv = $("#errdiv");
+        let url = $("#basic-url").val();
+        if (!Boolean(url.match("https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)"))) {
+            if (errdiv.hasClass("hide"))
+                errdiv.removeClass("hide");
+            vibrate(50, 10, "#err")
+        } else {
+            if (!errdiv.hasClass("hide"))
+                errdiv.addClass("hide");
+
+            let saveData = $.ajax({
+                type: 'POST',
+                url: "{{url_for('hello')}}",
+                contentType: 'application/json;charset=UTF-8',
+                data: JSON.stringify({'data': url.toString()}),
+                success: function (response) {
+                    console.log(JSON.parse(response));
+                    response=JSON.parse(response);
+                    if (!Boolean(response["result"].match("\w+"))) {
+                        if (!$("#resdiv").hasClass("hide"))
+                            $("#resdiv").addClass("hide");
+                        errdiv.removeClass("hide");
+                        vibrate(50, 10, "#err")
+                    } else {
+                        if (!errdiv.hasClass("hide"))
+                            errdiv.addClass("hide");
+
+                        if ($("#resdiv").hasClass("hide"))
+                            $("#resdiv").removeClass("hide");
+                        $("#card-linkid").text("/" + response);
+                        $("#card-linkid").attr("href", "/" + response);
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% include "footer.html" %}
